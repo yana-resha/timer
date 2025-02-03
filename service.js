@@ -1,5 +1,5 @@
-const mapTimersList = (list) =>
-  list.map((timer) => {
+const mapTimersList = (list) => {
+  return   list.map((timer) => {
     if (timer.is_active) {
       timer.progress = Date.now() - timer.start;
     } else {
@@ -7,6 +7,7 @@ const mapTimersList = (list) =>
     }
     return timer;
   });
+}
 
 module.exports = {
   mapTimersList,

@@ -75,7 +75,7 @@ app.post("/login", bodyParser.urlencoded({ extended: false }), async (req, res) 
     return res.redirect("/?authError=true");
   }
   const sessionId = await createSession(user.id);
-  res.cookie("sessionId", sessionId.session_id, { httpOnly: true, signed: false }).redirect("/");
+  res.cookie("sessionId", sessionId, { httpOnly: true, signed: false }).redirect("/");
 });
 
 app.post("/signup", bodyParser.urlencoded({ extended: false }), async (req, res) => {
@@ -88,6 +88,7 @@ app.post("/signup", bodyParser.urlencoded({ extended: false }), async (req, res)
   if (user && user.password === hash(password)) {
     const sessionId = await createSession(user.id);
     res.cookie("sessionId", sessionId, { httpOnly: true, signed: false }).redirect("/");
+    return;
   }
 
   if (user && user.password !== hash(password)) {
@@ -96,8 +97,8 @@ app.post("/signup", bodyParser.urlencoded({ extended: false }), async (req, res)
 
   const response = await createUser(username, password);
   if (response) {
-    const sessionResponse = await createSession(response.id);
-    res.cookie("sessionId", sessionResponse.session_id, { httpOnly: true, signed: false }).redirect("/");
+    const sessionResponse = await createSession(response);
+    res.cookie("sessionId", sessionResponse, { httpOnly: true, signed: false }).redirect("/");
   } else {
     res.redirect("/?authError=true");
   }
@@ -148,7 +149,6 @@ wss.on("connection", async (ws, req) => {
   const { sessionId, id } = req.user;
 
   clients.set(sessionId + separator + id, ws);
-
   const allTimersList = mapTimersList(await getTimersList(id));
   sendSocketTimersList(ws, allTimersList);
 

@@ -30,7 +30,7 @@ const createUser = async (username, password) => {
     password: hash(password),
   };
   return await db("users")
-    .insert(user, "id")
+    .insert(user)
     .then((results) => results[0]);
 };
 
@@ -39,16 +39,26 @@ const createSession = async (userId) => {
     session_id: nanoid(),
     user_id: userId,
   };
-  return await db("sessions")
-    .insert(session, "session_id")
-    .then((results) => results[0]);
+  const id =  await db("sessions")
+    .insert(session)
+    .then((results) => results[0])
+
+  const session_id = await db("sessions")
+    .select(("session_id")).where({id}).first()
+    .then((result) => result?.session_id);
+  return session_id;
 };
 
-const deleteSession = async (sessionId) =>
-  await db("sessions")
-    .where({ session_id: sessionId })
-    .del("session_id")
-    .then((results) => results[0]);
+const deleteSession = async (sessionId) => await db("sessions")
+  .where({ session_id: sessionId })
+  .del()
+  .then((results) => {
+    if (results[0]) {
+      return sessionId;
+    }
+    return undefined;
+  })
+
 
 const getTimersList = async (userId, isActive) => {
   const sqlRequest = { user_id: userId };
@@ -63,9 +73,13 @@ const createTimer = async (userId, description = "") => {
     is_active: true,
     user_id: userId,
   };
-  return await db("timers")
-    .insert(timer, ["id", "description"])
+  const id = await db("timers")
+    .insert(timer)
     .then((results) => results[0]);
+  const newTimer = await db("timers")
+    .select("description", "id").where({id}).first()
+    .then(result => result)
+  return newTimer
 };
 const stopTimer = async (userId, id) =>
   await db("timers").where({ user_id: userId, id }).update({ is_active: false, end: db.fn.now() }, ["id"]);

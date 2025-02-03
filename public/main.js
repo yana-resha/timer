@@ -88,8 +88,8 @@
       client.addEventListener("message", async (message) => {
         let data = await JSON.parse(message.data);
         if (data.type === "all_timers") {
-          this.activeTimers = data.list?.filter((timer) => timer.is_active === true) ?? [];
-          this.oldTimers = data.list?.filter((timer) => timer.is_active === false) ?? [];
+          this.activeTimers = data.list?.filter((timer) => timer.is_active) ?? [];
+          this.oldTimers = data.list?.filter((timer) => timer.is_active === 0 || timer.is_active === false) ?? [];
         }
       });
     },
